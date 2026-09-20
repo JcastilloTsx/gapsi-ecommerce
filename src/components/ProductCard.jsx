@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 function formatPrice(value) {
   return value ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Consultar'
 }
@@ -34,11 +36,14 @@ function handleDragStart(event, product) {
 }
 
 export default function ProductCard({ product, onAdd, index }) {
+  const [isDragging, setIsDragging] = useState(false)
+
   return (
     <article
-      className="product-card"
+      className={`product-card${isDragging ? ' is-dragging' : ''}`}
       draggable
-      onDragStart={(event) => handleDragStart(event, product)}
+      onDragStart={(event) => { handleDragStart(event, product); setIsDragging(true) }}
+      onDragEnd={() => setIsDragging(false)}
       style={{ '--delay': `${Math.min(index, 10) * 35}ms` }}
     >
       <div className="product-image-wrap">
@@ -47,7 +52,12 @@ export default function ProductCard({ product, onAdd, index }) {
         ) : (
           <div className="image-fallback"><i className="fa-solid fa-bag-shopping" /></div>
         )}
-        <button type="button" className="add-button" onClick={() => onAdd(product)} aria-label={`Añadir ${product.title} al carrito`}>
+        <button
+          type="button"
+          className="add-button"
+          onClick={(event) => onAdd(product, event.currentTarget.closest('.product-image-wrap').getBoundingClientRect())}
+          aria-label={`Añadir ${product.title} al carrito`}
+        >
           <i className="fa-solid fa-cart-plus" />
         </button>
       </div>

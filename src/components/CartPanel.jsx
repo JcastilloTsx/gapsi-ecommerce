@@ -15,12 +15,13 @@ export default function CartPanel({ cart, onDrop, onRemove }) {
       onDragLeave={() => setIsOver(false)}
       onDrop={(event) => {
         event.preventDefault()
-        onDrop(event.dataTransfer.getData('productId'))
+        const dropPoint = { left: event.clientX - 25, top: event.clientY - 25, width: 50, height: 50 }
+        onDrop(event.dataTransfer.getData('productId'), dropPoint)
         setIsOver(false)
       }}
     >
       <div className="cart-heading">
-        <div><p className="eyebrow">Tu selección</p><h2>Carrito <span>{cart.length}</span></h2></div>
+        <div><p className="eyebrow">Tu selección</p><h2>Carrito <span key={cart.length} className="cart-badge">{cart.length}</span></h2></div>
         <i className="fa-solid fa-bag-shopping" />
       </div>
 

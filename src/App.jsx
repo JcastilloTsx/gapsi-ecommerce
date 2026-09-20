@@ -9,6 +9,7 @@ import SortMenu from './components/SortMenu'
 import ProductGrid from './components/ProductGrid'
 import ProductGridSkeleton from './components/ProductGridSkeleton'
 import CartPanel from './components/CartPanel'
+import { flyToCart } from './utils/flyToCart'
 
 async function fetchProductsPage(keyword, page) {
   // fetchPolicy por defecto (cache-first): repetir la misma búsqueda/página no vuelve a golpear el API.
@@ -73,17 +74,18 @@ function App() {
     .filter((product) => !cart.some((item) => item.id === product.id))
     .sort((a, b) => (sort === 'Precio menor' ? a.price - b.price : sort === 'Precio mayor' ? b.price - a.price : 0))
 
-  const addToCart = (product) => {
+  const addToCart = (product, sourceRect) => {
     setCart((current) => (current.some((item) => item.id === product.id) ? current : [...current, product]))
+    flyToCart(sourceRect, product.image)
   }
 
   const removeFromCart = (id) => {
     setCart((current) => current.filter((item) => item.id !== id))
   }
 
-  const dropIntoCart = (productId) => {
+  const dropIntoCart = (productId, sourceRect) => {
     const product = products.find((item) => String(item.id) === productId)
-    if (product) addToCart(product)
+    if (product) addToCart(product, sourceRect)
   }
 
   const resetApp = () => {
