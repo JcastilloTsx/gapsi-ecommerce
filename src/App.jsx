@@ -7,13 +7,14 @@ import Header from './components/Header'
 import SearchHero from './components/SearchHero'
 import SortMenu from './components/SortMenu'
 import ProductGrid from './components/ProductGrid'
+import ProductGridSkeleton from './components/ProductGridSkeleton'
 import CartPanel from './components/CartPanel'
 
 async function fetchProductsPage(keyword, page) {
+  // fetchPolicy por defecto (cache-first): repetir la misma búsqueda/página no vuelve a golpear el API.
   const { data } = await apolloClient.query({
     query: SEARCH_PRODUCTS,
     variables: { keyword, page },
-    fetchPolicy: 'network-only',
   })
   return data.searchProducts
 }
@@ -56,6 +57,7 @@ function App() {
     if (!trimmed) return
     setQuery(trimmed)
     setSubmittedQuery(trimmed)
+    setProducts([]) // limpia resultados del término anterior para que el skeleton se vea de inmediato
     setPage(1)
     setHasMore(true)
     loadProducts(trimmed, 1, true)
@@ -125,6 +127,8 @@ function App() {
             </div>
           )}
 
+          {submittedQuery && loading && visibleProducts.length === 0 && !error && <ProductGridSkeleton />}
+
           {submittedQuery && !loading && !error && visibleProducts.length === 0 && (
             <div className="empty-state">
               <div className="empty-icon"><i className="fa-solid fa-bag-shopping" /></div>
@@ -143,8 +147,8 @@ function App() {
             />
           )}
 
-          <div className="load-status">
-            {loading && <><CircularProgress size={18} /> Cargando más productos...</>}
+          <div className="load-status" role="status" aria-live="polite">
+            {loading && visibleProducts.length > 0 && <><CircularProgress size={18} /> Cargando más productos...</>}
             {!loading && submittedQuery && !hasMore && visibleProducts.length > 0 && 'Has llegado al final del catálogo'}
           </div>
         </div>
