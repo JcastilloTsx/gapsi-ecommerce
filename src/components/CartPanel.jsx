@@ -47,6 +47,11 @@ export default function CartPanel({ cart, onDrop, onRemove }) {
       {cart.length > 0 && (
         <div className="cart-footer"><span>Total estimado</span><strong>{formatPrice(total)}</strong></div>
       )}
+
+      <div className="drop-hint" aria-hidden="true">
+        <i className="fa-solid fa-bag-shopping" />
+        <span>Suelta aquí</span>
+      </div>
     </aside>
   )
 }
