@@ -2,6 +2,21 @@
 
 Buscador de productos y carrito de compras para Gapsi e-Commerce. Front-end puro (React 19 + Vite) que consume el servicio REST de Axesso (Walmart) para mostrar resultados de búsqueda con scroll infinito y virtual scroll, y permite armar un carrito arrastrando productos o con el botón "+".
 
+## Cumplimiento de requisitos no funcionales
+
+| Peso | Requisito | Estado | Evidencia |
+|---|---|---|---|
+| 5 | Virtual scroll en la lista de productos | ✅ | [`ProductGrid.jsx`](src/components/ProductGrid.jsx) — `useVirtualizer` de `@tanstack/react-virtual`; solo las filas visibles + overscan se montan en el DOM, sin importar cuántas páginas se hayan cargado. |
+| 4 | ≥2 patrones de diseño, indicados en el código | ✅ | Ver [tabla de patrones](#arquitectura-y-patrones-de-diseño) — **Adapter** en [`productAdapter.js`](src/adapters/productAdapter.js), **Repository** en [`walmartService.js`](src/services/walmartService.js), ambos comentados como tal en el propio archivo. |
+| 5 | Consumir el servicio REST de Axesso | ✅ | [`walmartService.js`](src/services/walmartService.js) — `fetch` con headers `x-rapidapi-key`/`x-rapidapi-host` al endpoint indicado en el enunciado. |
+| 3 | Build minificado y ofuscado | ✅ | [`vite.config.js`](vite.config.js) — `build.minify: 'terser'` + `vite-plugin-javascript-obfuscator` (solo en `build`, no en `dev`). Verificado inspeccionando `dist/assets/*.js`: identificadores hexadecimales y string-array típicos de ofuscación real, no solo minificado. |
+| 5 (deseable) | Drag & drop al carrito | ✅ | [`ProductCard.jsx`](src/components/ProductCard.jsx) + [`CartPanel.jsx`](src/components/CartPanel.jsx) — HTML5 DnD nativo (`draggable`, `dataTransfer`), con botón "+" como alternativa accesible por teclado. Animado en [`utils/flyToCart.js`](src/utils/flyToCart.js): imagen de arrastre personalizada, drop-zone reactivo, y el producto "vuela" del punto de origen al ícono del carrito al soltarlo. |
+| 2 (deseable) | 1 feature de PWA | ✅ | [`vite.config.js`](vite.config.js) — `vite-plugin-pwa` genera `manifest.webmanifest` + service worker instalable (`registerType: 'autoUpdate'`). |
+| 4 (deseable) | Material-UI | ✅ | `Select` en [`SortMenu.jsx`](src/components/SortMenu.jsx), `CircularProgress` y `Alert` en [`App.jsx`](src/App.jsx), tema propio en [`theme.js`](src/theme.js). |
+| 4 (deseable) | GraphQL | ✅ | [`src/graphql/`](src/graphql) — esquema y resolver reales ejecutados en el navegador vía Apollo `SchemaLink` (sin servidor); la UI consulta con `apolloClient.query(SEARCH_PRODUCTS)` en vez de llamar al REST directamente. |
+| 2 (deseable) | Font Awesome (o similar) desde CDN | ✅ | [`index.html`](index.html) — `cdnjs.cloudflare.com/.../font-awesome`. Todos los íconos de la app usan esta librería. |
+| 1 (deseable) | Bootstrap (o similar) desde CDN | ✅ | [`index.html`](index.html) — `cdn.jsdelivr.net/npm/bootstrap`. |
+
 ## Requisitos previos
 
 - Node.js 20 o superior
@@ -53,7 +68,8 @@ Capas adicionales:
 - `src/config/env.js` — configuración centralizada (URL, host, llave), separada del resto del código.
 - `src/graphql/` — esquema GraphQL ejecutado en el propio navegador (`SchemaLink` de Apollo Client, sin servidor): el resolver `searchProducts` delega en el Repository. La UI consulta vía `apolloClient.query(...)`.
 - `src/hooks/useColumnCount.js` — número de columnas del grid según el viewport (espeja los breakpoints de `styles.css`).
-- `src/components/` — un componente por responsabilidad (Header, SearchHero, ProductGrid, ProductCard, SortMenu, CartPanel).
+- `src/utils/flyToCart.js` — animación de "vuelo" del producto hacia el carrito al agregarlo.
+- `src/components/` — un componente por responsabilidad (Header, SearchHero, ProductGrid, ProductGridSkeleton, ProductCard, SortMenu, CartPanel).
 
 ## Funcionalidad
 
@@ -61,10 +77,12 @@ Capas adicionales:
 - Tarjetas con nombre, precio e imagen.
 - Scroll infinito: cada scroll cerca del final pide la siguiente página.
 - **Virtual scroll** real (`@tanstack/react-virtual`): solo se montan en el DOM las filas visibles del grid, sin importar cuántas páginas se hayan cargado.
-- Drag & drop de producto al carrito (HTML5 nativo), con botón "+" como alternativa accesible.
+- **Skeleton loading** ([`ProductGridSkeleton.jsx`](src/components/ProductGridSkeleton.jsx)): al enviar una búsqueda se limpian los resultados anteriores y se muestran placeholders con shimmer mientras responde el API, en vez de dejar el panel en blanco.
+- Drag & drop de producto al carrito (HTML5 nativo), con botón "+" como alternativa accesible y animación de vuelo hacia el carrito en ambos casos.
 - Un producto agregado al carrito desaparece del listado.
 - Botón de reinicio (arriba a la derecha) que limpia búsqueda, resultados y carrito.
 - Ordenar por relevancia / precio (Material-UI `Select`).
+- Toda la animación (shimmer, vuelo al carrito, pulso del contador) respeta `prefers-reduced-motion`.
 
 ## Stack técnico
 
